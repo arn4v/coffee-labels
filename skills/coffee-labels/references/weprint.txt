@@ -1,0 +1,60 @@
+WePrint-compatible P2 printer reference
+
+Hardware-tested setup: Seznik Josh / WePrint-compatible P2, manufacturer pixra,
+firmware 3.1.20251014, 203 DPI, 384-dot print head, 50 x 50 mm adhesive labels.
+Native image dimensions: 384 x 400 pixels.
+
+Ask for the user's exact Bluetooth device name. Do not use a sample name or
+connect to another nearby printer. PRINTER_NAME below is a placeholder.
+
+Tested settings: darkness 10, existing speed 2 and adhesive-paper mode.
+Darkness 13 and 14 produced smudged text on the tested setup. These observations
+are not universal settings for all printers or media. The client sets darkness
+only; it does not change paper mode, speed, or gap settings. Confirm the printer's
+existing settings separately. Charging helped in one case of mid-job disconnects;
+do not diagnose every disconnect as low battery.
+
+Requirements: a local Mac, Xcode Command Line Tools (swiftc), Bluetooth enabled,
+and Bluetooth permission for the terminal or agent host. No third-party runtime
+packages are needed. The bundled Swift client uses Apple's CoreBluetooth and
+ImageIO. It supports this 384-dot setup only, not arbitrary WePrint printers.
+
+Run these commands from the installed coffee-labels skill directory:
+
+  mkdir -p work/swift-module-cache
+  swiftc -module-cache-path work/swift-module-cache scripts/weprint.swift -o work/weprint
+  ./work/weprint --self-test
+
+Read-only discovery and status queries:
+
+  ./work/weprint 'PRINTER_NAME'
+
+Only after approval of the displayed label and quantity:
+
+  ./work/weprint 'PRINTER_NAME' /absolute/path/to/label-384x400.png 10
+
+No-device encoding check:
+
+  ./work/weprint --encode /absolute/path/to/label-384x400.png work/label.bin
+
+Each invocation sends one copy. Print sequentially, never concurrently.
+Use native 384x400 PNGs. Legacy 400x400 inputs are accepted but scaled by the
+client, which can reduce text sharpness. Never use a contact sheet as input.
+
+The client queries ready status, DPI, and width before sending. It uses FF03
+credit notifications, FF02 writes, and FF01 replies under service FF00.
+
+A final ready status does not prove a particular page printed, and can mistake
+a reboot for readiness. Inspect the physical test label before continuing a
+batch. Do not automatically resend after a disconnect, timeout, or uncertain
+completion. If the host denies Bluetooth access, use its normal permission flow;
+a cloud session cannot reach a local printer by itself.
+
+Protocol investigation sources:
+https://play.google.com/store/apps/details?id=com.dothantech.weidaguoji
+https://app.dothantech.com/app/android/WeiDa-Label.apk
+https://github.com/Endriur24/detonger_web_bt
+
+The bundled client is a standalone Swift implementation. These links document
+the protocol investigation; no vendor APK, third-party source, logos, or fonts
+are distributed in this repository.

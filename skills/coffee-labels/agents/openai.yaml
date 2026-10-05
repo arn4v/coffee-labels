@@ -1,0 +1,4 @@
+interface:
+  display_name: "Coffee Labels"
+  short_description: "Roaster-inspired labels with preview before printing"
+  default_prompt: "Use $coffee-labels to make a label using the roaster's logo and design language, show me the preview, then ask whether to print."
